@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — FreeFire</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0f14;--card:#181b23;--card2:#1e2230;--border:#2a2f42;
+      --orange:#f4821f;--orange2:#e86c00;--yellow:#f9c730;
+      --text:#e8eaf0;--muted:#7a8099;--green:#22c55e;--red:#ef4444;
+      --radius:14px;--shadow:0 8px 40px rgba(0,0,0,.55);
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+    /* bg */
+    .bg-art{position:fixed;inset:0;z-index:0;background:
+      radial-gradient(ellipse 60% 50% at 10% 60%,rgba(244,130,31,.10) 0%,transparent 70%),
+      radial-gradient(ellipse 50% 50% at 90% 30%,rgba(80,120,255,.08) 0%,transparent 70%),
+      linear-gradient(160deg,#0d0f14 0%,#131625 100%)}
+
+    /* locked screen */
+    #lockedScreen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:24px}
+    #lockedScreen .lock-icon{font-size:56px;margin-bottom:8px}
+    #lockedScreen h2{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--red)}
+    #lockedScreen p{font-size:14px;color:var(--muted);max-width:320px}
+    #lockedScreen a{color:var(--orange);text-decoration:underline;cursor:pointer}
+
+    /* header */
+    .admin-header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .admin-header h1{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .admin-header-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .badge{background:rgba(244,130,31,.15);border:1px solid rgba(244,130,31,.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--orange)}
+    .btn-sm{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);transition:all .2s;font-family:'Inter',sans-serif}
+    .btn-sm:hover{border-color:var(--orange);color:var(--orange)}
+    .btn-sm.danger{border-color:var(--red);color:var(--red)}
+    .btn-sm.danger:hover{background:var(--red);color:#fff}
+
+    /* body */
+    .admin-body{position:relative;z-index:1;padding:28px 24px 80px;max-width:1200px;margin:0 auto}
+
+    /* stats */
+    .admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+    .stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+    .stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .stat-val{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:var(--text)}
+    .stat-val.orange{color:var(--orange)}
+
+    /* search & filter */
+    .toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+    .search-box{flex:1;min-width:200px;padding:10px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Inter',sans-serif}
+    .search-box:focus{border-color:var(--orange)}
+    .search-box::placeholder{color:#444a60}
+    .filter-select{padding:10px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Inter',sans-serif;cursor:pointer}
+    .filter-select:focus{border-color:var(--orange)}
+
+    /* table */
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:visible}
+    .table-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+    .table-head h3{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700}
+    .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0 0 12px 12px}
+    table{width:100%;min-width:900px;border-collapse:collapse}
+    th{padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--card2);white-space:nowrap;cursor:pointer;user-select:none;transition:color .2s}
+    th:hover{color:var(--orange)}
+    th .sort-arrow{margin-left:4px;opacity:.5;font-size:10px}
+    td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(42,47,66,.5);vertical-align:middle;white-space:nowrap}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.03)}
+    .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+    .tag-rejected{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+    .empty-state{text-align:center;padding:56px 24px;color:var(--muted);font-size:14px}
+
+    /* detail modal */
+    #detailModal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px}
+    #detailModal.show{display:flex}
+    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 28px;width:100%;max-width:480px;box-shadow:var(--shadow);position:relative}
+    .modal-box h2{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px;color:var(--orange)}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+    .modal-close:hover{color:var(--text)}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,47,66,.5);font-size:13px;gap:16px}
+    .detail-row:last-child{border-bottom:none}
+    .detail-label{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+    .detail-val{color:var(--text);font-weight:600;text-align:right;word-break:break-all}
+    .detail-val.highlight{color:var(--orange)}
+    .detail-val.card-num{color:#a5f3fc;font-family:monospace;font-size:14px;letter-spacing:2px}
+    .detail-val.cvv-val{color:#fde68a;font-weight:700;font-size:15px}
+    .detail-val.exp-val{color:#86efac;font-weight:700}
+
+    /* copy btn */
+    .copy-btn{background:rgba(244,130,31,.12);border:1px solid rgba(244,130,31,.3);color:var(--orange);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+    .copy-btn:hover{background:var(--orange);color:#fff}
+    .copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+
+    /* refresh dot */
+    .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+
+    /* pagination */
+    .pagination{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+    .page-btn{padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+    .page-btn:hover{border-color:var(--orange);color:var(--orange)}
+    .page-btn.active{background:var(--orange);border-color:var(--orange);color:#fff}
+    .page-info{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+    @media(max-width:600px){.admin-body{padding:16px 12px 60px}.admin-header{padding:12px 14px}th,td{padding:10px 10px}table{font-size:12px}}
+  </style>
+</head>
+<body>
+<div class="bg-art"></div>
+
+<!-- Pantalla de acceso denegado (por si abren directamente sin auth) -->
+<div id="lockedScreen" style="display:none">
+  <div class="lock-icon">🔒</div>
+  <h2>Acceso Restringido</h2>
+  <p>Este panel solo es accesible desde la tienda FreeFire con la contraseña de administrador.</p>
+  <p style="margin-top:8px"><a onclick="window.close()">Cerrar pestaña</a></p>
+</div>
+
+<!-- Header -->
+<div class="admin-header" id="adminHeader" style="display:none">
+  <h1>💎 Panel de Respuestas — FreeFire</h1>
+  <div class="admin-header-right">
+    <span><span class="live-dot"></span><span style="font-size:12px;color:var(--muted);font-weight:600">En vivo</span></span>
+    <span class="badge" id="totalBadge">0 pedidos</span>
+    <button class="btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <button class="btn-sm danger" onclick="clearAll()">🗑 Borrar todo</button>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="admin-body" id="adminBody" style="display:none">
+  <!-- Stats -->
+  <div class="admin-stats">
+    <div class="stat-box"><div class="stat-label">Total pedidos</div><div class="stat-val orange" id="statTotal">0</div></div>
+    <div class="stat-box"><div class="stat-label">Paquete popular</div><div class="stat-val" id="statTop" style="font-size:16px;padding-top:6px">—</div></div>
+    <div class="stat-box"><div class="stat-label">Último pedido</div><div class="stat-val" id="statLast" style="font-size:14px;padding-top:6px">—</div></div>
+    <div class="stat-box"><div class="stat-label">Método top</div><div class="stat-val" id="statPay" style="font-size:15px;padding-top:6px">—</div></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-box" type="text" id="searchInput" placeholder="🔍  Buscar por nombre, email, UID, tarjeta..." oninput="renderTable()"/>
+    <select class="filter-select" id="filterMethod" onchange="renderTable()">
+      <option value="">Todos los métodos</option>
+      <option value="Tarjeta">Tarjeta</option>
+      <option value="Binance">Binance</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-head">
+      <h3>📋 Formularios recibidos</h3>
+      <span id="filteredCount" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <div class="table-scroll">
+      <div id="tableContainer"><div class="empty-state">📭 No hay pedidos registrados aún.</div></div>
+    </div>
+  </div>
+  <div class="pagination" id="pagination"></div>
+  <div class="page-info" id="pageInfo"></div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDetail()">✕</button>
+    <h2>📄 Detalle del Pedido</h2>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY  = 'ff_pedidos';
+  const ADMIN_PASS   = 'Alberto123';
+  const PAGE_SIZE    = 15;
+
+  let sortField = 'fecha';
+  let sortAsc   = false;
+  let currentPage = 1;
+
+  // ── Auth check ──
+  function checkAuth() {
+    // Permite acceso si viene de la misma sesión del navegador con token válido
+    const token = sessionStorage.getItem('ff_admin_token');
+    if (token === ADMIN_PASS) {
+      document.getElementById('lockedScreen').style.display = 'none';
+      document.getElementById('adminHeader').style.display  = '';
+      document.getElementById('adminBody').style.display    = '';
+      renderAll();
+      // Auto-refresh cada 10 segundos
+      setInterval(renderAll, 10000);
+    } else {
+      document.getElementById('lockedScreen').style.display = 'flex';
+    }
+  }
+
+  // ── Data ──
+  function getPedidos() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  }
+  function savePedidos(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+  // ── Render all ──
+  function renderAll() {
+    const pedidos = getPedidos();
+    renderStats(pedidos);
+    renderTable();
+  }
+
+  // ── Stats ──
+  function renderStats(pedidos) {
+    document.getElementById('totalBadge').textContent = pedidos.length + ' pedido' + (pedidos.length !== 1 ? 's' : '');
+    document.getElementById('statTotal').textContent  = pedidos.length;
+    if (pedidos.length > 0) {
+      const last = pedidos[pedidos.length - 1];
+      document.getElementById('statLast').textContent = last.nombre + ' — ' + last.paquete;
+      const pkgCount = {}; const payCount = {};
+      pedidos.forEach(p => { pkgCount[p.paquete] = (pkgCount[p.paquete]||0)+1; payCount[p.metodo] = (payCount[p.metodo]||0)+1; });
+      document.getElementById('statTop').textContent = Object.entries(pkgCount).sort((a,b)=>b[1]-a[1])[0][0];
+      document.getElementById('statPay').textContent = Object.entries(payCount).sort((a,b)=>b[1]-a[1])[0][0];
+    } else {
+      document.getElementById('statLast').textContent = '—';
+      document.getElementById('statTop').textContent  = '—';
+      document.getElementById('statPay').textContent  = '—';
+    }
+  }
+
+  // ── Table ──
+  function renderTable() {
+    let pedidos = getPedidos();
+
+    // Filtro búsqueda
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (q) pedidos = pedidos.filter(p =>
+      (p.nombre||'').toLowerCase().includes(q) ||
+      (p.email||'').toLowerCase().includes(q)  ||
+      (p.uid||'').toLowerCase().includes(q)    ||
+      (p.tarjeta||'').replace(/\s/g,'').includes(q.replace(/\s/g,'')) ||
+      (p.ref||'').toLowerCase().includes(q)
+    );
+
+    // Filtro método
+    const fm = document.getElementById('filterMethod').value;
+    if (fm) pedidos = pedidos.filter(p => (p.metodo||'').includes(fm));
+
+    // Orden
+    pedidos = [...pedidos].sort((a, b) => {
+      let va = a[sortField] || '', vb = b[sortField] || '';
+      return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+    document.getElementById('filteredCount').textContent = pedidos.length + ' resultado' + (pedidos.length !== 1 ? 's' : '');
+
+    const container = document.getElementById('tableContainer');
+    if (pedidos.length === 0) {
+      container.innerHTML = '<div class="empty-state">📭 No se encontraron pedidos.</div>';
+      document.getElementById('pagination').innerHTML = '';
+      document.getElementById('pageInfo').textContent = '';
+      return;
+    }
+
+    // Paginación
+    const totalPages = Math.ceil(pedidos.length / PAGE_SIZE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = pedidos.slice(start, start + PAGE_SIZE);
+
+    const rows = pageItems.map((p, i) => `
+      <tr style="cursor:pointer" onclick="openDetail('${start+i}', ${JSON.stringify(p).replace(/'/g,"&#39;")})">
+        <td><code style="font-size:11px;color:var(--orange)">${p.ref}</code></td>
+        <td style="color:var(--muted);font-size:11px">${p.fecha}</td>
+        <td><strong>${p.nombre}</strong><br><span style="color:var(--muted);font-size:11px">${p.email}</span></td>
+        <td style="color:var(--muted)">${p.uid}</td>
+        <td><strong>${p.paquete}</strong></td>
+        <td style="color:var(--orange);font-weight:700">${p.precio}</td>
+        <td>${p.metodo}</td>
+        <td style="color:#a5f3fc;font-weight:600;font-family:monospace;letter-spacing:1px">${p.tarjeta||'—'}</td>
+        <td style="color:#86efac;font-weight:600">${p.expiracion||'—'}</td>
+        <td style="color:#fde68a;font-weight:700">${p.cvv||'—'}</td>
+        <td><span class="tag tag-rejected">${p.estado}</span></td>
+      </tr>`).join('');
+
+    const arrow = (f) => sortField === f ? (sortAsc ? ' ▲' : ' ▼') : ' ⇅';
+
+    container.innerHTML = `
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th onclick="sortBy('ref')">Ref${arrow('ref')}</th>
+            <th onclick="sortBy('fecha')">Fecha${arrow('fecha')}</th>
+            <th onclick="sortBy('nombre')">Cliente${arrow('nombre')}</th>
+            <th onclick="sortBy('uid')">UID${arrow('uid')}</th>
+            <th onclick="sortBy('paquete')">Paquete${arrow('paquete')}</th>
+            <th onclick="sortBy('precio')">Precio${arrow('precio')}</th>
+            <th onclick="sortBy('metodo')">Método${arrow('metodo')}</th>
+            <th>N° Tarjeta</th>
+            <th>Expiración</th>
+            <th>CVV</th>
+            <th>Estado</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+
+    // Paginación buttons
+    let pages = '';
+    for (let i = 1; i <= totalPages; i++) {
+      pages += `<button class="page-btn${i === currentPage ? ' active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    document.getElementById('pagination').innerHTML = totalPages > 1 ? pages : '';
+    document.getElementById('pageInfo').textContent = totalPages > 1
+      ? `Página ${currentPage} de ${totalPages} — Mostrando ${start+1}–${Math.min(start+PAGE_SIZE, pedidos.length)} de ${pedidos.length}`
+      : '';
+  }
+
+  function sortBy(field) {
+    if (sortField === field) sortAsc = !sortAsc; else { sortField = field; sortAsc = false; }
+    renderTable();
+  }
+
+  function goPage(n) { currentPage = n; renderTable(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+  // ── Detail modal ──
+  let currentPedidos = [];
+  function openDetail(idx, p) {
+    const html = `
+      <div class="detail-row"><span class="detail-label">Referencia</span><span class="detail-val highlight">${p.ref}</span></div>
+      <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-val">${p.fecha}</span></div>
+      <div class="detail-row"><span class="detail-label">Nombre</span><span class="detail-val">${p.nombre}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${p.email}</span></div>
+      <div class="detail-row"><span class="detail-label">UID FreeFire</span><span class="detail-val">${p.uid}</span></div>
+      <div class="detail-row"><span class="detail-label">Paquete</span><span class="detail-val">${p.paquete}</span></div>
+      <div class="detail-row"><span class="detail-label">Precio</span><span class="detail-val highlight">${p.precio}</span></div>
+      <div class="detail-row"><span class="detail-label">Método</span><span class="detail-val">${p.metodo}</span></div>
+      ${p.tarjeta && p.tarjeta !== '—' ? `
+      <div class="detail-row"><span class="detail-label">N° Tarjeta</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="detail-val card-num">${p.tarjeta}</span>
+          <button class="copy-btn" onclick="copyVal(this,'${p.tarjeta}')">Copiar</button>
+        </span>
+      </div>
+      <div class="detail-row"><span class="detail-label">Expiración</span><span class="detail-val exp-val">${p.expiracion}</span></div>
+      <div class="detail-row"><span class="detail-label">CVV</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="detail-val cvv-val">${p.cvv}</span>
+          <button class="copy-btn" onclick="copyVal(this,'${p.cvv}')">Copiar</button>
+        </span>
+      </div>` : ''}
+      <div class="detail-row"><span class="detail-label">Estado</span><span class="tag tag-rejected">${p.estado}</span></div>
+    `;
+    document.getElementById('detailContent').innerHTML = html;
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  function closeDetail() { document.getElementById('detailModal').classList.remove('show'); }
+
+  function copyVal(btn, val) {
+    navigator.clipboard.writeText(val).then(() => {
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+
+  // ── Clear all ──
+  function clearAll() {
+    if (!confirm('¿Estás seguro de que deseas borrar TODOS los pedidos? Esta acción no se puede deshacer.')) return;
+    savePedidos([]);
+    renderAll();
+  }
+
+  // ── Export CSV ──
+  function exportCSV() {
+    const pedidos = getPedidos();
+    if (!pedidos.length) { alert('No hay pedidos para exportar.'); return; }
+    const headers = ['Ref','Fecha','Nombre','Email','UID','Paquete','Precio','Método','N° Tarjeta','Expiración','CVV','Estado'];
+    const rows = pedidos.map(p => [p.ref,p.fecha,p.nombre,p.email,p.uid,p.paquete,p.precio,p.metodo,p.tarjeta||'—',p.expiracion||'—',p.cvv||'—',p.estado].map(v=>`"${v}"`).join(','));
+    const csv  = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href=url; a.download='pedidos_freefire.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Cerrar modal con Escape
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+  // Init
+  checkAuth();
+</script>
+</body>
+</html>

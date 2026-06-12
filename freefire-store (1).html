@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discount Stores FreeFire</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0f14;--card:#181b23;--card2:#1e2230;--border:#2a2f42;
+      --orange:#f4821f;--orange2:#e86c00;--yellow:#f9c730;
+      --text:#e8eaf0;--muted:#7a8099;--green:#22c55e;--red:#ef4444;
+      --radius:14px;--shadow:0 8px 40px rgba(0,0,0,.55);
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;position:relative}
+
+    /* bg */
+    .bg-art{position:fixed;inset:0;z-index:0;background:
+      radial-gradient(ellipse 60% 50% at 10% 60%,rgba(244,130,31,.13) 0%,transparent 70%),
+      radial-gradient(ellipse 50% 50% at 90% 30%,rgba(80,120,255,.10) 0%,transparent 70%),
+      linear-gradient(160deg,#0d0f14 0%,#131625 100%)}
+    .bg-art::before{content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.018'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+
+    /* page */
+    .page{position:relative;z-index:1;padding:0 16px 80px}
+
+    /* header */
+    header{text-align:center;padding:28px 0 20px}
+    .logo-top{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+    .logo-main{font-family:'Rajdhani',sans-serif;font-size:clamp(28px,6vw,46px);font-weight:700;letter-spacing:2px;text-transform:uppercase;background:linear-gradient(135deg,var(--orange) 0%,var(--yellow) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+
+    /* steps bar */
+    .steps-bar{display:flex;align-items:center;justify-content:center;gap:0;max-width:640px;margin:0 auto 32px}
+    .step-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);transition:color .3s}
+    .step-item.active{color:var(--orange)}.step-item.done{color:var(--green)}
+    .step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--border);background:var(--card);transition:all .3s}
+    .step-item.active .step-num{border-color:var(--orange);background:var(--orange);color:#fff}
+    .step-item.done  .step-num{border-color:var(--green);background:var(--green);color:#fff}
+    .step-line{flex:1;height:2px;background:var(--border);max-width:80px;margin:0 8px;position:relative;overflow:hidden}
+    .step-line-fill{height:100%;width:0;background:var(--orange);transition:width .5s}
+
+    /* grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:1040px;margin:0 auto}
+
+    /* card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;box-shadow:var(--shadow);display:none}
+    .card.active{display:block}
+    .card-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+    .card-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--orange) 0%,var(--orange2) 100%);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .card-icon.lock{background:linear-gradient(135deg,#334155,#1e293b)}
+    .card-title{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+    .card-name{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:var(--text)}
+
+    /* fields */
+    .field{margin-bottom:18px}
+    .field label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .field input{width:100%;padding:12px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;font-family:'Inter',sans-serif}
+    .field input:focus{border-color:var(--orange)}
+    .field input::placeholder{color:#444a60}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .error-msg{font-size:11px;color:#f87171;margin-top:5px;display:none}
+    .field.has-error input{border-color:#f87171}
+    .field.has-error .error-msg{display:block}
+
+    /* btn */
+    .btn-primary{width:100%;padding:14px;background:linear-gradient(90deg,var(--orange) 0%,var(--orange2) 100%);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .2s,transform .15s;font-family:'Rajdhani',sans-serif;margin-top:8px}
+    .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-primary:active{transform:scale(.98)}
+
+    /* diamond options */
+    .diamond-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+    .diamond-option{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;position:relative}
+    .diamond-option:hover{border-color:rgba(244,130,31,.5)}
+    .diamond-option.selected{border-color:var(--orange);background:rgba(244,130,31,.07)}
+    .diamond-option .gem{font-size:26px;flex-shrink:0}
+    .diamond-option .info{flex:1}
+    .diamond-option .dname{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700}
+    .diamond-option .dprice{font-size:12px;color:var(--muted);font-weight:600;margin-top:1px}
+    .diamond-option .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .diamond-option.selected .radio{border-color:var(--orange);background:var(--orange)}
+    .diamond-option.selected .radio::after{content:'✓';font-size:11px;color:#fff}
+
+    /* pay methods */
+    .pay-methods{display:flex;gap:10px;margin-bottom:18px}
+    .pay-tab{flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);cursor:pointer;text-align:center;font-size:13px;font-weight:600;color:var(--muted);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .pay-tab.active{border-color:var(--orange);background:rgba(244,130,31,.1);color:var(--text)}
+
+    /* ── REJECTED screen ── */
+    #step-rejected{display:none}
+    #step-rejected.active{display:block}
+    .rejected-card{max-width:640px;margin:0 auto;background:var(--card);border:1px solid #7f1d1d;border-radius:var(--radius);padding:36px 28px;box-shadow:0 8px 40px rgba(239,68,68,.18);text-align:center}
+    .rejected-icon{width:64px;height:64px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 18px;box-shadow:0 0 30px rgba(239,68,68,.45)}
+    .rejected-title{font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;color:var(--red);margin-bottom:6px}
+    .rejected-sub{font-size:14px;color:var(--muted);margin-bottom:28px}
+    .rejected-reasons{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:24px;text-align:left}
+    .rejected-reasons p{font-size:13px;color:var(--muted);margin-bottom:6px;display:flex;gap:8px;align-items:flex-start}
+    .rejected-reasons p span{color:var(--red)}
+    .btn-outline{padding:13px 24px;border:1.5px solid var(--border);border-radius:10px;background:none;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;transition:border-color .2s}
+    .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+
+    /* ── ADMIN LOGIN ── */
+    #adminLogin{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+    #adminLogin.show{display:flex}
+    .admin-login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px 32px;width:100%;max-width:380px;box-shadow:var(--shadow)}
+    .admin-login-box h2{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;color:var(--text)}
+    .admin-login-box p{font-size:13px;color:var(--muted);margin-bottom:24px}
+    .admin-login-box input{width:100%;padding:12px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;font-family:'Inter',sans-serif;margin-bottom:12px}
+    .admin-login-box input:focus{border-color:var(--orange)}
+    .admin-err{font-size:12px;color:var(--red);margin-bottom:10px;display:none}
+
+    /* ── ADMIN PANEL ── */
+    #adminPanel{display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);overflow-y:auto}
+    #adminPanel.show{display:block}
+    .admin-header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .admin-header h1{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .admin-header-right{display:flex;gap:10px;align-items:center}
+    .badge{background:rgba(244,130,31,.15);border:1px solid rgba(244,130,31,.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--orange)}
+    .btn-sm{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);transition:all .2s;font-family:'Inter',sans-serif}
+    .btn-sm:hover{border-color:var(--red);color:var(--red)}
+    .btn-sm.danger{border-color:var(--red);color:var(--red)}
+    .btn-sm.danger:hover{background:var(--red);color:#fff}
+    .admin-body{padding:24px;max-width:1100px;margin:0 auto}
+    .admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+    .stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+    .stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .stat-val{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:var(--text)}
+    .stat-val.orange{color:var(--orange)}
+    /* table */
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .table-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .table-head h3{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th{padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--card2)}
+    td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(42,47,66,.5);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+    .tag-rejected{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+    .empty-state{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px}
+
+    /* chat */
+    .chat-btn{position:fixed;bottom:24px;right:24px;z-index:999;background:#25d366;border-radius:50px;padding:12px 18px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(37,211,102,.4);text-decoration:none}
+
+    /* admin access btn */
+    .admin-access{position:fixed;bottom:24px;left:24px;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:10px 16px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+    .admin-access:hover{border-color:var(--orange);color:var(--orange)}
+
+    @media(max-width:600px){.grid{grid-template-columns:1fr}.card{padding:22px 16px}.steps-bar{gap:0}.step-item span:last-child{display:none}table{font-size:12px}th,td{padding:10px 10px}}
+  </style>
+</head>
+<body>
+
+<div class="bg-art"></div>
+
+<!-- ══ ADMIN LOGIN MODAL ══ -->
+<div id="adminLogin">
+  <div class="admin-login-box">
+    <h2>🔐 Panel Admin</h2>
+    <p>Ingresa la contraseña para acceder al panel de respuestas.</p>
+    <input type="password" id="adminPassInput" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkAdmin()"/>
+    <div class="admin-err" id="adminErr">Contraseña incorrecta. Intenta de nuevo.</div>
+    <button class="btn-primary" onclick="checkAdmin()">INGRESAR →</button>
+    <button class="btn-outline" style="width:100%;margin-top:10px" onclick="closeAdminLogin()">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div id="adminPanel">
+  <div class="admin-header">
+    <h1>💎 Panel de Respuestas — FreeFire</h1>
+    <div class="admin-header-right">
+      <span class="badge" id="totalBadge">0 pedidos</span>
+      <button class="btn-sm danger" onclick="clearAll()">🗑 Borrar todo</button>
+      <button class="btn-sm" onclick="closeAdmin()">✕ Cerrar</button>
+    </div>
+  </div>
+  <div class="admin-body">
+    <div class="admin-stats">
+      <div class="stat-box"><div class="stat-label">Total pedidos</div><div class="stat-val orange" id="statTotal">0</div></div>
+      <div class="stat-box"><div class="stat-label">Paquete popular</div><div class="stat-val" id="statTop" style="font-size:16px;padding-top:6px">—</div></div>
+      <div class="stat-box"><div class="stat-label">Último pedido</div><div class="stat-val" id="statLast" style="font-size:14px;padding-top:6px">—</div></div>
+      <div class="stat-box"><div class="stat-label">Método de pago top</div><div class="stat-val" id="statPay" style="font-size:15px;padding-top:6px">—</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <h3>📋 Formularios recibidos</h3>
+        <button class="btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
+      </div>
+      <div id="tableContainer">
+        <div class="empty-state">No hay pedidos aún.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN PAGE ══ -->
+<div class="page" id="mainPage">
+  <header>
+    <div class="logo-top">Discount Stores</div>
+    <div class="logo-main">FreeFire 💎</div>
+  </header>
+
+  <!-- Steps bar -->
+  <div class="steps-bar">
+    <div class="step-item active" id="si1"><div class="step-num">01</div><span>Información</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line1"></div></div>
+    <div class="step-item" id="si2"><div class="step-num">02</div><span>Selecciona</span></div>
+    <div class="step-line"><div class="step-line-fill" id="line2"></div></div>
+    <div class="step-item" id="si3"><div class="step-num">03</div><span>Pago</span></div>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="grid" id="mainGrid">
+    <!-- Card 1 -->
+    <div class="card active" id="card1">
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <div><div class="card-title">Paso 1</div><div class="card-name">Información Personal</div></div>
+      </div>
+      <div class="field" id="f-name">
+        <label>👤 Nombre Completo</label>
+        <input type="text" id="inp-name" placeholder="Escribe tu nombre completo"/>
+        <div class="error-msg">Por favor ingresa tu nombre completo.</div>
+      </div>
+      <div class="field" id="f-email">
+        <label>✉️ Correo Electrónico</label>
+        <input type="email" id="inp-email" placeholder="ejemplo@correo.com"/>
+        <div class="error-msg">Ingresa un correo válido.</div>
+      </div>
+      <div class="field" id="f-uid">
+        <label>🎮 ID de Jugador (UID)</label>
+        <input type="text" id="inp-uid" placeholder="Ej: 123456789"/>
+        <div class="error-msg">Ingresa tu UID de FreeFire.</div>
+      </div>
+      <button class="btn-primary" onclick="goStep(2)">CONTINUAR →</button>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card" id="card2">
+      <div class="card-header">
+        <div class="card-icon">💎</div>
+        <div><div class="card-title">Paso 2</div><div class="card-name">Selecciona tu compra</div></div>
+      </div>
+      <div class="diamond-list">
+        <div class="diamond-option" onclick="selectPkg(this,'100 Diamantes','$5.000 COP')">
+          <div class="gem">💎</div><div class="info"><div class="dname">100 DIAMANTES</div><div class="dprice">$5.000 COP</div></div><div class="radio"></div>
+        </div>
+        <div class="diamond-option selected" onclick="selectPkg(this,'310 Diamantes','$12.000 COP')">
+          <div class="gem">💎</div><div class="info"><div class="dname">310 DIAMANTES</div><div class="dprice">$12.000 COP</div></div><div class="radio"></div>
+        </div>
+        <div class="diamond-option" onclick="selectPkg(this,'520 Diamantes','$18.000 COP')">
+          <div class="gem">💎</div><div class="info"><div class="dname">520 DIAMANTES</div><div class="dprice">$18.000 COP</div></div><div class="radio"></div>
+        </div>
+        <div class="diamond-option" onclick="selectPkg(this,'1060 Diamantes','$35.000 COP')">
+          <div class="gem">💎</div><div class="info"><div class="dname">1060 DIAMANTES</div><div class="dprice">$35.000 COP</div></div><div class="radio"></div>
+        </div>
+        <div class="diamond-option" onclick="selectPkg(this,'Pase Semanal','$8.000 COP')">
+          <div class="gem">🎴</div><div class="info"><div class="dname">PASE SEMANAL</div><div class="dprice">$8.000 COP</div></div><div class="radio"></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="goStep(3)">CONTINUAR →</button>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card" id="card3">
+      <div class="card-header">
+        <div class="card-icon lock">🔒</div>
+        <div><div class="card-title">Paso 3</div><div class="card-name">Pago Seguro</div></div>
+      </div>
+      <div style="margin-bottom:14px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Método de pago</div>
+      <div class="pay-methods">
+        <div class="pay-tab active" id="pay-card" onclick="selectPay('Tarjeta Débito/Crédito')">💳 Tarjeta Déb/Cré</div>
+        <div class="pay-tab" id="pay-binance" onclick="selectPay('Binance Pay')">◈ Binance Pay</div>
+      </div>
+      <div id="cardForm">
+        <div class="field" id="f-cardnum">
+          <label>Número de tarjeta</label>
+          <input type="text" id="inp-card" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)"/>
+          <div class="error-msg">Ingresa un número de tarjeta válido.</div>
+        </div>
+        <div class="field-row">
+          <div class="field" id="f-exp">
+            <label>Fecha exp.</label>
+            <input type="text" id="inp-exp" placeholder="MM / AA" maxlength="7" oninput="fmtExp(this)"/>
+            <div class="error-msg">Fecha inválida.</div>
+          </div>
+          <div class="field" id="f-cvv">
+            <label>CVV</label>
+            <input type="text" id="inp-cvv" placeholder="123" maxlength="3"/>
+            <div class="error-msg">CVV inválido.</div>
+          </div>
+        </div>
+      </div>
+      <div id="binanceForm" style="display:none">
+        <div class="field">
+          <label>Email de Binance</label>
+          <input type="email" id="inp-binance-email" placeholder="tu@binance.com"/>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:-8px">Serás redirigido a Binance Pay para confirmar.</p>
+      </div>
+      <button class="btn-primary" onclick="goStep(4)">FINALIZAR COMPRA 🔒</button>
+    </div>
+  </div>
+
+  <!-- REJECTED screen -->
+  <div id="step-rejected">
+    <div class="rejected-card">
+      <div class="rejected-icon">✕</div>
+      <div class="rejected-title">❌ PAGO RECHAZADO</div>
+      <div class="rejected-sub">No pudimos procesar tu pago. Por favor verifica tus datos e intenta nuevamente.</div>
+      <div class="rejected-reasons">
+        <p><span>▸</span> Fondos insuficientes o tarjeta bloqueada.</p>
+        <p><span>▸</span> Datos de tarjeta incorrectos (número, fecha o CVV).</p>
+        <p><span>▸</span> Tu banco rechazó la transacción por seguridad.</p>
+        <p><span>▸</span> Contacta a tu banco o intenta con otro método de pago.</p>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-primary" style="max-width:220px" onclick="retryPayment()">🔄 INTENTAR DE NUEVO</button>
+        <button class="btn-outline" onclick="resetAll()">🏠 Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat -->
+<a class="chat-btn" href="https://wa.me/57300000000" target="_blank">💬 Chat en Vivo</a>
+
+<!-- Admin access -->
+<button class="admin-access" onclick="openAdminLogin()">🔐 Admin</button>
+
+<script>
+  // ── state ──
+  let currentStep = 1;
+  let selectedPkgData = { name: '310 Diamantes', price: '$12.000 COP' };
+  let selectedPayMethod = 'Tarjeta Débito/Crédito';
+  const ADMIN_PASS = 'Alberto123';
+  const STORAGE_KEY = 'ff_pedidos';
+
+  // ── helpers ──
+  function getPedidos() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  }
+  function savePedidos(arr) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  }
+  function genRef() {
+    const d = new Date();
+    return 'FF' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + Math.floor(Math.random()*9000+1000);
+  }
+
+  // ── step navigation ──
+  function goStep(n) {
+    if (n === 2 && !validateStep1()) return;
+    if (n === 4 && !validateStep3()) return;
+
+    if (n === 4) {
+      savePedido();
+      showRejected();
+      return;
+    }
+    currentStep = n;
+    [1,2,3].forEach(i => document.getElementById('card'+i).classList.toggle('active', i <= n));
+    updateBar(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateBar(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('si'+i);
+      el.className = 'step-item' + (i < n ? ' done' : i === n ? ' active' : '');
+    });
+    document.getElementById('line1').style.width = n >= 2 ? '100%' : '0';
+    document.getElementById('line2').style.width = n >= 3 ? '100%' : '0';
+  }
+
+  // ── save pedido to localStorage ──
+  function savePedido() {
+    const pedidos = getPedidos();
+    const cardNum = document.getElementById('inp-card').value;
+    const masked  = cardNum ? '**** **** **** ' + cardNum.replace(/\s/g,'').slice(-4) : '—';
+    pedidos.push({
+      ref:     genRef(),
+      fecha:   new Date().toLocaleString('es-CO'),
+      nombre:  document.getElementById('inp-name').value.trim(),
+      email:   document.getElementById('inp-email').value.trim(),
+      uid:     document.getElementById('inp-uid').value.trim(),
+      paquete: selectedPkgData.name,
+      precio:  selectedPkgData.price,
+      metodo:  selectedPayMethod,
+      tarjeta: selectedPayMethod.includes('Tarjeta') ? masked : '—',
+      estado:  'Rechazado'
+    });
+    savePedidos(pedidos);
+  }
+
+  // ── show rejected ──
+  function showRejected() {
+    document.getElementById('mainGrid').style.display = 'none';
+    document.getElementById('step-rejected').style.display = 'block';
+    updateBar(4);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function retryPayment() {
+    document.getElementById('mainGrid').style.display = '';
+    document.getElementById('step-rejected').style.display = 'none';
+    currentStep = 3;
+    [1,2,3].forEach(i => document.getElementById('card'+i).classList.toggle('active', i <= 3));
+    updateBar(3);
+    document.getElementById('inp-card').value = '';
+    document.getElementById('inp-exp').value  = '';
+    document.getElementById('inp-cvv').value  = '';
+    ['f-cardnum','f-exp','f-cvv'].forEach(id => setErr(id, false));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetAll() {
+    currentStep = 1;
+    document.getElementById('mainGrid').style.display = '';
+    document.getElementById('step-rejected').style.display = 'none';
+    [1,2,3].forEach(i => document.getElementById('card'+i).classList.toggle('active', i === 1));
+    updateBar(1);
+    ['inp-name','inp-email','inp-uid','inp-card','inp-exp','inp-cvv'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['f-name','f-email','f-uid','f-cardnum','f-exp','f-cvv'].forEach(id => setErr(id, false));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── validations ──
+  function validateStep1() {
+    const name  = document.getElementById('inp-name').value.trim();
+    const email = document.getElementById('inp-email').value.trim();
+    const uid   = document.getElementById('inp-uid').value.trim();
+    let ok = true;
+    if (!name  || name.length  < 3) { setErr('f-name',  true); ok = false; } else setErr('f-name', false);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('f-email', true); ok = false; } else setErr('f-email', false);
+    if (!uid   || uid.length   < 5) { setErr('f-uid',   true); ok = false; } else setErr('f-uid', false);
+    return ok;
+  }
+  function validateStep3() {
+    if (selectedPayMethod === 'Binance Pay') return true;
+    const card = document.getElementById('inp-card').value.replace(/\s/g,'');
+    const exp  = document.getElementById('inp-exp').value;
+    const cvv  = document.getElementById('inp-cvv').value;
+    let ok = true;
+    if (card.length < 16) { setErr('f-cardnum', true); ok = false; } else setErr('f-cardnum', false);
+    if (exp.length  <  7) { setErr('f-exp',     true); ok = false; } else setErr('f-exp', false);
+    if (cvv.length  <  3) { setErr('f-cvv',     true); ok = false; } else setErr('f-cvv', false);
+    return ok;
+  }
+  function setErr(id, v) { document.getElementById(id).classList.toggle('has-error', v); }
+
+  // ── package & pay selection ──
+  function selectPkg(el, name, price) {
+    document.querySelectorAll('.diamond-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPkgData = { name, price };
+  }
+  function selectPay(method) {
+    selectedPayMethod = method;
+    document.getElementById('pay-card').classList.toggle('active', method.includes('Tarjeta'));
+    document.getElementById('pay-binance').classList.toggle('active', method === 'Binance Pay');
+    document.getElementById('cardForm').style.display    = method.includes('Tarjeta') ? 'block' : 'none';
+    document.getElementById('binanceForm').style.display = method === 'Binance Pay'   ? 'block' : 'none';
+  }
+
+  // ── formatters ──
+  function fmtCard(el) { let v=el.value.replace(/\D/g,'').substring(0,16); el.value=v.match(/.{1,4}/g)?.join(' ')??v; }
+  function fmtExp(el)  { let v=el.value.replace(/\D/g,'').substring(0,4); if(v.length>=3) v=v.substring(0,2)+' / '+v.substring(2); el.value=v; }
+
+  // ── admin login ──
+  function openAdminLogin() { document.getElementById('adminLogin').classList.add('show'); document.getElementById('adminPassInput').value=''; document.getElementById('adminErr').style.display='none'; setTimeout(()=>document.getElementById('adminPassInput').focus(),100); }
+  function closeAdminLogin() { document.getElementById('adminLogin').classList.remove('show'); }
+  function checkAdmin() {
+    const pass = document.getElementById('adminPassInput').value;
+    if (pass === ADMIN_PASS) { closeAdminLogin(); openAdmin(); }
+    else { document.getElementById('adminErr').style.display='block'; document.getElementById('adminPassInput').value=''; document.getElementById('adminPassInput').focus(); }
+  }
+
+  // ── admin panel ──
+  function openAdmin() {
+    const panel = document.getElementById('adminPanel');
+    panel.classList.add('show');
+    renderAdmin();
+  }
+  function closeAdmin() { document.getElementById('adminPanel').classList.remove('show'); }
+
+  function renderAdmin() {
+    const pedidos = getPedidos();
+    document.getElementById('totalBadge').textContent = pedidos.length + ' pedido' + (pedidos.length!==1?'s':'');
+    document.getElementById('statTotal').textContent  = pedidos.length;
+
+    // stats
+    if (pedidos.length > 0) {
+      const last = pedidos[pedidos.length-1];
+      document.getElementById('statLast').textContent = last.nombre + ' — ' + last.paquete;
+
+      const pkgCount = {};
+      const payCount = {};
+      pedidos.forEach(p => {
+        pkgCount[p.paquete] = (pkgCount[p.paquete]||0)+1;
+        payCount[p.metodo]  = (payCount[p.metodo] ||0)+1;
+      });
+      document.getElementById('statTop').textContent = Object.entries(pkgCount).sort((a,b)=>b[1]-a[1])[0][0];
+      document.getElementById('statPay').textContent = Object.entries(payCount).sort((a,b)=>b[1]-a[1])[0][0];
+    } else {
+      document.getElementById('statLast').textContent = '—';
+      document.getElementById('statTop').textContent  = '—';
+      document.getElementById('statPay').textContent  = '—';
+    }
+
+    const container = document.getElementById('tableContainer');
+    if (pedidos.length === 0) {
+      container.innerHTML = '<div class="empty-state">📭 No hay pedidos registrados aún.</div>';
+      return;
+    }
+
+    const rows = [...pedidos].reverse().map(p => `
+      <tr>
+        <td><code style="font-size:11px;color:var(--orange)">${p.ref}</code></td>
+        <td>${p.fecha}</td>
+        <td><strong>${p.nombre}</strong><br><span style="color:var(--muted);font-size:11px">${p.email}</span></td>
+        <td style="color:var(--muted)">${p.uid}</td>
+        <td><strong>${p.paquete}</strong><br><span style="color:var(--orange);font-size:12px">${p.precio}</span></td>
+        <td>${p.metodo}</td>
+        <td style="color:var(--muted);font-size:12px">${p.tarjeta}</td>
+        <td><span class="tag tag-rejected">${p.estado}</span></td>
+      </tr>`).join('');
+
+    container.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Ref.</th><th>Fecha</th><th>Cliente</th><th>UID</th><th>Paquete</th><th>Método</th><th>Tarjeta</th><th>Estado</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function clearAll() {
+    if (!confirm('¿Estás seguro de que deseas borrar TODOS los pedidos? Esta acción no se puede deshacer.')) return;
+    savePedidos([]);
+    renderAdmin();
+  }
+
+  function exportCSV() {
+    const pedidos = getPedidos();
+    if (!pedidos.length) { alert('No hay pedidos para exportar.'); return; }
+    const headers = ['Ref','Fecha','Nombre','Email','UID','Paquete','Precio','Método','Tarjeta','Estado'];
+    const rows = pedidos.map(p => [p.ref,p.fecha,p.nombre,p.email,p.uid,p.paquete,p.precio,p.metodo,p.tarjeta,p.estado].map(v=>`"${v}"`).join(','));
+    const csv  = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href=url; a.download='pedidos_freefire.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
